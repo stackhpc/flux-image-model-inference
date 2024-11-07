@@ -8,7 +8,7 @@ WORKDIR /app
 COPY src src
 COPY setup.py setup.py
 COPY pyproject.toml pyproject.toml
-RUN pip install ".[gradio]"
+RUN pip install --no-cache-dir ".[gradio]"
 
 COPY model_licenses model_licenses
 COPY LICENSE LICENSE
