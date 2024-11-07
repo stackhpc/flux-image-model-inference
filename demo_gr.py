@@ -188,17 +188,18 @@ def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available
                 warning_text = gr.Textbox(label="Warning", visible=False)
                 download_btn = gr.File(label="Download full-resolution")
 
-        def update_img2img(do_img2img):
-            return {
-                init_image: gr.update(visible=do_img2img),
-                image2image_strength: gr.update(visible=do_img2img),
-            }
+        # def update_img2img(do_img2img):
+        #     return {
+        #         init_image: gr.update(visible=do_img2img),
+        #         image2image_strength: gr.update(visible=do_img2img),
+        #     }
 
-        do_img2img.change(update_img2img, do_img2img, [init_image, image2image_strength])
+        # do_img2img.change(update_img2img, do_img2img, [init_image, image2image_strength])
 
         generate_btn.click(
             fn=generator.generate_image,
-            inputs=[width, height, num_steps, guidance, seed, prompt, init_image, image2image_strength, add_sampling_metadata],
+            # inputs=[width, height, num_steps, guidance, seed, prompt, init_image, image2image_strength, add_sampling_metadata],
+            inputs=[width, height, num_steps, guidance, seed, prompt, add_sampling_metadata],
             outputs=[output_image, seed_output, download_btn, warning_text],
         )
 
