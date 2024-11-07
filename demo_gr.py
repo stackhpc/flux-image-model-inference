@@ -64,7 +64,7 @@ class FluxGenerator:
 
         if opts.seed is None:
             opts.seed = torch.Generator(device="cpu").seed()
-        print(f"Generating '{opts.prompt}' with seed {opts.seed}")
+        # print(f"Generating '{opts.prompt}' with seed {opts.seed}")
         t0 = time.perf_counter()
 
         if init_image is not None:
@@ -168,9 +168,9 @@ def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available
         with gr.Row():
             with gr.Column():
                 prompt = gr.Textbox(label="Prompt", value="a photo of a forest with mist swirling around the tree trunks. The word \"FLUX\" is painted over it in big, red brush strokes with visible texture")
-                do_img2img = gr.Checkbox(label="Image to Image", value=False, interactive=not is_schnell)
-                init_image = gr.Image(label="Input Image", visible=False)
-                image2image_strength = gr.Slider(0.0, 1.0, 0.8, step=0.1, label="Noising strength", visible=False)
+                # do_img2img = gr.Checkbox(label="Image to Image", value=False, interactive=not is_schnell)
+                # init_image = gr.Image(label="Input Image", visible=False)
+                # image2image_strength = gr.Slider(0.0, 1.0, 0.8, step=0.1, label="Noising strength", visible=False)
 
                 with gr.Accordion("Advanced Options", open=False):
                     width = gr.Slider(128, 8192, 1360, step=16, label="Width")
