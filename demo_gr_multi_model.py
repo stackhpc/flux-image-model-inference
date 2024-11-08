@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+from typing import List
 
 import torch
 import gradio as gr
@@ -64,7 +65,6 @@ class FluxGenerator:
 
         if opts.seed is None:
             opts.seed = torch.Generator(device="cpu").seed()
-        print(f"Generating '{opts.prompt}' with seed {opts.seed}")
         t0 = time.perf_counter()
 
         if init_image is not None:
@@ -158,25 +158,27 @@ class FluxGenerator:
         else:
             return None, str(opts.seed), None, "Your generated image may contain NSFW content."
 
-def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available() else "cpu", offload: bool = False):
-    generator = FluxGenerator(model_name, device, offload)
-    is_schnell = model_name == "flux-schnell"
+def create_demo(
+        models: List[str],
+        example_prompt,
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        offload: bool = False
+    ):
+    generators = {model: FluxGenerator(model, device, offload) for model in models}
 
     with gr.Blocks() as demo:
-        gr.Markdown(f"# Flux Image Generation Demo - Model: {model_name}")
+        gr.Markdown("# Flux Image Generation Demo")
 
         with gr.Row():
             with gr.Column():
-                prompt = gr.Textbox(label="Prompt", value="a photo of a forest with mist swirling around the tree trunks. The word \"FLUX\" is painted over it in big, red brush strokes with visible texture")
-                do_img2img = gr.Checkbox(label="Image to Image", value=False, interactive=not is_schnell)
-                init_image = gr.Image(label="Input Image", visible=False)
-                image2image_strength = gr.Slider(0.0, 1.0, 0.8, step=0.1, label="Noising strength", visible=False)
+                model = gr.Dropdown(models, value=models[0], label="Model", interactive=len(models) > 1)
+                prompt = gr.Textbox(label="Prompt", value=example_prompt)
 
                 with gr.Accordion("Advanced Options", open=False):
                     width = gr.Slider(128, 8192, 1360, step=16, label="Width")
                     height = gr.Slider(128, 8192, 768, step=16, label="Height")
-                    num_steps = gr.Slider(1, 50, 4 if is_schnell else 50, step=1, label="Number of steps")
-                    guidance = gr.Slider(1.0, 10.0, 3.5, step=0.1, label="Guidance", interactive=not is_schnell)
+                    num_steps = gr.Slider(1, 50, 4 if model.value == "flux-schnell" else 50, step=1, label="Number of steps")
+                    guidance = gr.Slider(1.0, 10.0, 3.5, step=0.1, label="Guidance", interactive=not model.value == "flux-schnell")
                     seed = gr.Textbox(-1, label="Seed (-1 for random)")
                     add_sampling_metadata = gr.Checkbox(label="Add sampling parameters to metadata?", value=True)
 
@@ -188,17 +190,12 @@ def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available
                 warning_text = gr.Textbox(label="Warning", visible=False)
                 download_btn = gr.File(label="Download full-resolution")
 
-        def update_img2img(do_img2img):
-            return {
-                init_image: gr.update(visible=do_img2img),
-                image2image_strength: gr.update(visible=do_img2img),
-            }
-
-        do_img2img.change(update_img2img, do_img2img, [init_image, image2image_strength])
+        def generate_image(model, *args):
+            return generators[model].generate_image(*args)
 
         generate_btn.click(
-            fn=generator.generate_image,
-            inputs=[width, height, num_steps, guidance, seed, prompt, init_image, image2image_strength, add_sampling_metadata],
+            fn=generate_image,
+            inputs=[model, width, height, num_steps, guidance, seed, prompt, add_sampling_metadata],
             outputs=[output_image, seed_output, download_btn, warning_text],
         )
 
@@ -207,11 +204,16 @@ def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Flux")
-    parser.add_argument("--name", type=str, default="flux-schnell", choices=list(configs.keys()), help="Model name")
+    parser.add_argument("--models", type=str, default="flux-schnell", help=f"Comma separated list of models to make available from {list(configs.keys())}")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--offload", action="store_true", help="Offload model to CPU when not in use")
-    parser.add_argument("--share", action="store_true", help="Create a public link to your demo")
+    parser.add_argument("--example-prompt", type=str, default="a photo of a forest with mist swirling around the tree trunks. The word \"FLUX\" is painted over it in big, red brush strokes with visible texture", help="The example prompt to show in the UI on first load")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="The host name for your Gradio server to listen on")
+    parser.add_argument("--web-root-path", type=str, default=None, help="The root path for the app on your web server (useful for running behind a reverse proxy)")
     args = parser.parse_args()
 
-    demo = create_demo(args.name, args.device, args.offload)
-    demo.launch(share=args.share)
+    demo = create_demo(args.models.split(","), args.example_prompt, args.device, args.offload)
+    demo.launch(
+        server_name=args.host,
+        root_path=args.web_root_path
+    )
