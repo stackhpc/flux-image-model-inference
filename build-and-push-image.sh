@@ -22,5 +22,9 @@ PACKAGE_REPO=ghcr.io/stackhpc/flux-image-model-inference
 COMMIT_SHA=$(git rev-parse --short HEAD)
 IMAGE_NAME=$PACKAGE_REPO:$COMMIT_SHA
 
+echo
+echo Building image $IMAGE_NAME
+echo
+
 docker build --platform linux/amd64 . -t $IMAGE_NAME
 docker push $IMAGE_NAME
