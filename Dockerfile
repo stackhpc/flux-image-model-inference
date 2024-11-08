@@ -16,5 +16,6 @@ COPY LICENSE LICENSE
 # Copy this last for quicker image builds
 # when only modifying the Gradio UI
 COPY demo_gr.py demo_gr.py
+COPY demo_gr_multi_model.py demo_gr_multi_model.py
 
-ENTRYPOINT ["python", "demo_gr.py", "--name", "flux-schnell"]
+ENTRYPOINT ["python", "demo_gr_multi_model.py"]
