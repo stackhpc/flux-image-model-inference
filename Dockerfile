@@ -17,5 +17,7 @@ COPY LICENSE LICENSE
 # when only modifying the Gradio UI
 COPY demo_gr.py demo_gr.py
 COPY demo_gr_multi_model.py demo_gr_multi_model.py
+COPY api_server.py api_server.py
 
-ENTRYPOINT ["python", "demo_gr_multi_model.py"]
+# ENTRYPOINT ["python", "demo_gr_multi_model.py"]
+ENTRYPOINT ["fastapi", "run", "api_server.py"]

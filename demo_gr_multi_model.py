@@ -211,6 +211,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="0.0.0.0", help="The host name for your Gradio server to listen on")
     parser.add_argument("--web-root-path", type=str, default=None, help="The root path for the app on your web server (useful for running behind a reverse proxy)")
     args = parser.parse_args()
+    print("Running with config:", args)
 
     demo = create_demo(args.models.split(","), args.example_prompt, args.device, args.offload)
     demo.launch(
