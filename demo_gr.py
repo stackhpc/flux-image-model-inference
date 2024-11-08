@@ -174,7 +174,7 @@ def create_demo(
             with gr.Column():
                 prompt = gr.Textbox(label="Prompt", value=example_prompt)
                 # do_img2img = gr.Checkbox(label="Image to Image", value=False, interactive=not is_schnell)
-                # init_image = gr.Image(label="Input Image", visible=False)
+                init_image = gr.Image(label="Input Image", visible=False)
                 # image2image_strength = gr.Slider(0.0, 1.0, 0.8, step=0.1, label="Noising strength", visible=False)
 
                 with gr.Accordion("Advanced Options", open=False):
@@ -204,7 +204,7 @@ def create_demo(
         generate_btn.click(
             fn=generator.generate_image,
             # inputs=[width, height, num_steps, guidance, seed, prompt, init_image, image2image_strength, add_sampling_metadata],
-            inputs=[width, height, num_steps, guidance, seed, prompt, add_sampling_metadata],
+            inputs=[width, height, num_steps, guidance, seed, prompt, init_image, add_sampling_metadata],
             outputs=[output_image, seed_output, download_btn, warning_text],
         )
 
