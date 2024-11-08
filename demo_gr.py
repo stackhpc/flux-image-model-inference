@@ -216,9 +216,10 @@ if __name__ == "__main__":
     parser.add_argument("--name", type=str, default="flux-schnell", choices=list(configs.keys()), help="Model name")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--offload", action="store_true", help="Offload model to CPU when not in use")
-    parser.add_argument("--host", type=str, default="0.0.0.0", help="The host name for your Gradio server to listen on")
     parser.add_argument("--example-prompt", type=str, default="a photo of a forest with mist swirling around the tree trunks. The word \"FLUX\" is painted over it in big, red brush strokes with visible texture", help="The example prompt to show in the UI on first load")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="The host name for your Gradio server to listen on")
+    parser.add_argument("--web-root-path", type=str, default="/", help="The root path for the app on your web server (useful for running behind a reverse proxy)")
     args = parser.parse_args()
 
     demo = create_demo(args.name, args.example_prompt, args.device, args.offload)
-    demo.launch(server_name=args.host)
+    demo.launch(server_name=args.host, root_path=args.web_root_path)
