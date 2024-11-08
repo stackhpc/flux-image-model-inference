@@ -158,7 +158,12 @@ class FluxGenerator:
         else:
             return None, str(opts.seed), None, "Your generated image may contain NSFW content."
 
-def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available() else "cpu", offload: bool = False):
+def create_demo(
+        model_name: str,
+        example_prompt,
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        offload: bool = False
+    ):
     generator = FluxGenerator(model_name, device, offload)
     is_schnell = model_name == "flux-schnell"
 
@@ -167,7 +172,7 @@ def create_demo(model_name: str, device: str = "cuda" if torch.cuda.is_available
 
         with gr.Row():
             with gr.Column():
-                prompt = gr.Textbox(label="Prompt", value="a photo of a forest with mist swirling around the tree trunks. The word \"FLUX\" is painted over it in big, red brush strokes with visible texture")
+                prompt = gr.Textbox(label="Prompt", value=example_prompt)
                 # do_img2img = gr.Checkbox(label="Image to Image", value=False, interactive=not is_schnell)
                 # init_image = gr.Image(label="Input Image", visible=False)
                 # image2image_strength = gr.Slider(0.0, 1.0, 0.8, step=0.1, label="Noising strength", visible=False)
@@ -212,7 +217,8 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use")
     parser.add_argument("--offload", action="store_true", help="Offload model to CPU when not in use")
     parser.add_argument("--host", action="store_true", default="0.0.0.0", help="The host name for your Gradio server to listen on")
+    parser.add_argument("--example-prompt", action="store_true", default="0.0.0.0", help="The example prompt to show in the UI on first load")
     args = parser.parse_args()
 
-    demo = create_demo(args.name, args.device, args.offload)
+    demo = create_demo(args.name, args.example_prompt, args.device, args.offload)
     demo.launch(server_name=args.host)
