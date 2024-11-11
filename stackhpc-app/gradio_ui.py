@@ -1,6 +1,7 @@
 import io
 import os
 import httpx
+import pathlib
 import uuid
 import yaml
 
@@ -19,7 +20,13 @@ class AppSettings(BaseModel):
     models: List[Model]
     example_prompt: str = "Yoda riding a skateboard"
 
-with open("gradio_config.yaml", "r") as file:
+
+settings_path = pathlib.Path("/etc/gradio-app/gradio_config.yaml")
+if not settings_path.exists():
+    print("No settings overrides found at", settings_path)
+    settings_path = "./stackhpc-app/gradio_config.yaml"
+print("Using settings from", settings_path)
+with open(settings_path, "r") as file:
     settings = AppSettings(**yaml.safe_load(file))
 print("App config:", settings.model_dump())
 
@@ -62,8 +69,11 @@ async def generate_image(
         "prompt": prompt,
         "add_sampling_metadata": add_sampling_metadata,
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=data)
+    async with httpx.AsyncClient(timeout=60) as client:
+        try:
+            response = await client.post(url, json=data)
+        except httpx.ConnectError:
+            raise gr.Error("Model backend unavailable")
         if response.status_code == 400:
             data = response.json()
             if "error" in data and "message" in data["error"]:
@@ -93,6 +103,7 @@ with gr.Blocks() as demo:
             prompt = gr.Textbox(label="Prompt", value=settings.example_prompt)
 
             with gr.Accordion("Advanced Options", open=False):
+                # TODO: Make min/max slide values configurable
                 width = gr.Slider(128, 8192, 1360, step=16, label="Width")
                 height = gr.Slider(128, 8192, 768, step=16, label="Height")
                 num_steps = gr.Slider(1, 50, 4 if model.value == "flux-schnell" else 50, step=1, label="Number of steps")

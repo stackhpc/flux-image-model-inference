@@ -1,8 +1,11 @@
+import os
 from gradio_client import Client
 
-client = Client("http://localhost:7860/")
+address = os.environ.get("GRADIO_HOST", "http://localhost:7860/")
+model = os.environ.get("FLUX_MODEL", "flux-schnell")
+client = Client(address)
 web_page, seed, file_name, err = client.predict(
-		model="flux-schnell",
+		model_name=model,
 		width=1360,
 		height=768,
 		num_steps=4,
