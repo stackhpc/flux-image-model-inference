@@ -1,10 +1,8 @@
-import os
-import time
-import uuid
+#####
+# Based on demo_gr.py in repo root
+#####
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
+import time
 
 import torch
 import numpy as np
@@ -142,8 +140,6 @@ class FluxGenerator:
         nsfw_score = [x["score"] for x in self.nsfw_classifier(img) if x["label"] == "nsfw"][0] # type: ignore
 
         if nsfw_score < NSFW_THRESHOLD:
-            filename = f"output/gradio/{uuid.uuid4()}.jpg"
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
             exif_data = Image.Exif()
             if init_image is None:
                 exif_data[ExifTags.Base.Software] = "AI generated;txt2img;flux"
@@ -154,39 +150,6 @@ class FluxGenerator:
             if add_sampling_metadata:
                 exif_data[ExifTags.Base.ImageDescription] = prompt
 
-            img.save(filename, format="jpeg", exif=exif_data, quality=95, subsampling=0)
-
-            return img, str(opts.seed), filename, None
+            return img, str(opts.seed), None
         else:
-            return None, str(opts.seed), None, "Your generated image may contain NSFW content."
-
-
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model = os.environ.get("FLUX_MODEL_NAME", "flux-schnell")
-print("Loading model", model)
-generator = FluxGenerator(model, device, offload=False)
-
-app = FastAPI()
-
-class ImageGenInput(BaseModel):
-    width: int
-    height: int
-    num_steps: int
-    guidance: float
-    seed: int
-    prompt: str
-    add_sampling_metadata: bool
-
-@app.get("/model")
-async def get_model():
-    return {"model": model}
-
-
-@app.post("/generate")
-async def generate_image(input: ImageGenInput):
-    _, seed, filename, msg = generator.generate_image(input.width, input.height, input.num_steps, input.guidance, input.seed, input.prompt, add_sampling_metadata=input.add_sampling_metadata)
-    if filename:
-        return FileResponse(filename, headers={"x-seed-header": seed})
-    else:
-        return {"error": { "message": msg, "seed": seed} }
+            return None, str(opts.seed), "Your generated image may contain NSFW content."

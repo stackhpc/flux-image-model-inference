@@ -15,9 +15,6 @@ COPY LICENSE LICENSE
 
 # Copy this last for quicker image builds
 # when only modifying the Gradio UI
-COPY demo_gr.py demo_gr.py
-COPY demo_gr_multi_model.py demo_gr_multi_model.py
-COPY api_server.py api_server.py
+COPY stackhpc-app stackhpc-app
 
-# ENTRYPOINT ["python", "demo_gr_multi_model.py"]
-ENTRYPOINT ["fastapi", "run", "api_server.py"]
+ENTRYPOINT ["fastapi", "run", "stackhpc-app/api_server.py"]
