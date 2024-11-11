@@ -1,0 +1,7 @@
+assets/
+build/
+model_cards/
+README.md
+
+*venv/
+.vscode/
