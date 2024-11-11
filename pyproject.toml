@@ -21,6 +21,8 @@ dependencies = [
   "protobuf",
   "requests",
   "invisible-watermark",
+  "fastapi[standard]",
+  "httpx",
 ]
 
 [project.optional-dependencies]
